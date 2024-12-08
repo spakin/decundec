@@ -12,6 +12,27 @@ import (
 	"slices"
 )
 
-func Sort[S ~[]E, E cmp.Ordered](x S) {
-	slices.Sort(x)
+// Sort sorts a slice in ascending order given a function that maps each
+// element to a sort key.
+func Sort[S ~[]E, E any, Ealt cmp.Ordered](x S, key func(E) Ealt) {
+	// Decorate each element of x.
+	type Wrapper struct {
+		e    E
+		eAlt Ealt
+	}
+	xAlt := make([]Wrapper, len(x))
+	for i, e := range x {
+		xAlt[i].e = e
+		xAlt[i].eAlt = key(x[i])
+	}
+
+	// Sort the decorated array.
+	slices.SortStableFunc(xAlt, func(a, b Wrapper) int {
+		return cmp.Compare(a.eAlt, b.eAlt)
+	})
+
+	// Undecorate each element of xAlt back into x.
+	for i, w := range xAlt {
+		x[i] = w.e
+	}
 }
