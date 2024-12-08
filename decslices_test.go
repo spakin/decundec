@@ -16,7 +16,7 @@ func TestSortIntsIdentity(t *testing.T) {
 	decslices.Sort(array, func(v int) int { return v })
 	for i, v := range array {
 		if expected[i] != v {
-			t.Fatalf("erroneous value at index %d of %#v", i, array)
+			t.Fatalf("erroneous value at index %d of %v", i, array)
 		}
 	}
 }
@@ -29,7 +29,7 @@ func TestSortIntsReversed(t *testing.T) {
 	decslices.Sort(array, func(v int) int { return -v })
 	for i, v := range array {
 		if expected[i] != v {
-			t.Fatalf("erroneous value at index %d of %#v", i, array)
+			t.Fatalf("erroneous value at index %d of %v", i, array)
 		}
 	}
 }
@@ -60,7 +60,7 @@ func TestSortFuncStrings(t *testing.T) {
 		func(s string) int { return len(s) })
 	for i, w := range words {
 		if expected[i] != w {
-			t.Fatalf("erroneous value at index %d of %#v", i, words)
+			t.Fatalf("erroneous value at index %d of %v", i, words)
 		}
 	}
 }
@@ -99,7 +99,7 @@ func TestSortStableFuncStrings(t *testing.T) {
 		func(s string) int { return len(s) })
 	for i, w := range words {
 		if expected[i] != w {
-			t.Fatalf("erroneous value at index %d of %#v", i, words)
+			t.Fatalf("erroneous value at index %d of %v", i, words)
 		}
 	}
 }
@@ -124,7 +124,7 @@ func TestSortedUint16s(t *testing.T) {
 	array := decslices.Sorted(seq, revDigits)
 	for i, v := range array {
 		if expected[i] != v {
-			t.Fatalf("erroneous value at index %d of %#v", i, array)
+			t.Fatalf("erroneous value at index %d of %v", i, array)
 		}
 	}
 }
