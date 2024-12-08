@@ -20,20 +20,23 @@ type assoc[E, Ekey any] struct {
 	eKey Ekey
 }
 
-// Sort sorts a slice in ascending order given a function that maps each
-// element to a sort key.
-func Sort[S ~[]E, E any, Ekey cmp.Ordered](x S, key func(E) Ekey) {
+// sortHelper decorates each element of a slice, sorts the new slice using
+// given sort and comparison functions, and overwrites the original slice
+// with the undecorated sorted slice.
+func sortHelper[S ~[]E, E, Ekey any](x S,
+	cmp func(a, b Ekey) int,
+	key func(E) Ekey,
+	sort func([]assoc[E, Ekey], func(a, b assoc[E, Ekey]) int)) {
 	// Decorate each element of x.
-	type Pair assoc[E, Ekey]
-	pairs := make([]Pair, len(x))
+	pairs := make([]assoc[E, Ekey], len(x))
 	for i, e := range x {
 		pairs[i].e = e
 		pairs[i].eKey = key(x[i])
 	}
 
 	// Sort the decorated slice
-	slices.SortStableFunc(pairs, func(a, b Pair) int {
-		return cmp.Compare(a.eKey, b.eKey)
+	sort(pairs, func(a, b assoc[E, Ekey]) int {
+		return cmp(a.eKey, b.eKey)
 	})
 
 	// Undecorate each element of pairs back into x.
@@ -42,49 +45,23 @@ func Sort[S ~[]E, E any, Ekey cmp.Ordered](x S, key func(E) Ekey) {
 	}
 }
 
+// Sort sorts a slice in ascending order given a function that maps each
+// element to a sort key.
+func Sort[S ~[]E, E any, Ekey cmp.Ordered](x S, key func(E) Ekey) {
+	sortHelper(x, cmp.Compare, key, slices.SortStableFunc)
+}
+
 // SortFunc sorts a slice in ascending order as determined by the cmp
 // function and given a function that maps each element to a sort key.
 func SortFunc[S ~[]E, E, Ekey any](x S, cmp func(a, b Ekey) int, key func(E) Ekey) {
-	// Decorate each element of x.
-	type Pair assoc[E, Ekey]
-	pairs := make([]Pair, len(x))
-	for i, e := range x {
-		pairs[i].e = e
-		pairs[i].eKey = key(x[i])
-	}
-
-	// Sort the decorated array.
-	slices.SortFunc(pairs, func(a, b Pair) int {
-		return cmp(a.eKey, b.eKey)
-	})
-
-	// Undecorate each element of xAlt back into x.
-	for i, p := range pairs {
-		x[i] = p.e
-	}
+	sortHelper(x, cmp, key, slices.SortFunc)
 }
 
 // SortStableFunc sorts a slice in ascending order as determined by the cmp
 // function and given a function that maps each element to a sort key.
 // SortStableFunc preserves the original order of equal elements.
 func SortStableFunc[S ~[]E, E, Ekey any](x S, cmp func(a, b Ekey) int, key func(E) Ekey) {
-	// Decorate each element of x.
-	type Pair assoc[E, Ekey]
-	pairs := make([]Pair, len(x))
-	for i, e := range x {
-		pairs[i].e = e
-		pairs[i].eKey = key(x[i])
-	}
-
-	// Sort the decorated array.
-	slices.SortStableFunc(pairs, func(a, b Pair) int {
-		return cmp(a.eKey, b.eKey)
-	})
-
-	// Undecorate each element of xAlt back into x.
-	for i, p := range pairs {
-		x[i] = p.e
-	}
+	sortHelper(x, cmp, key, slices.SortStableFunc)
 }
 
 // Sorted takes a slice and a function that maps each element to a sort key
