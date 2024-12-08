@@ -36,3 +36,28 @@ func Sort[S ~[]E, E any, Ealt cmp.Ordered](x S, key func(E) Ealt) {
 		x[i] = w.e
 	}
 }
+
+// SortFunc sorts a slice in ascending order as determined by the cmp
+// function and given a function that maps each element to a sort key.
+func SortFunc[S ~[]E, E, Ealt any](x S, cmp func(a, b Ealt) int, key func(E) Ealt) {
+	// Decorate each element of x.
+	type Wrapper struct {
+		e    E
+		eAlt Ealt
+	}
+	xAlt := make([]Wrapper, len(x))
+	for i, e := range x {
+		xAlt[i].e = e
+		xAlt[i].eAlt = key(x[i])
+	}
+
+	// Sort the decorated array.
+	slices.SortFunc(xAlt, func(a, b Wrapper) int {
+		return cmp(a.eAlt, b.eAlt)
+	})
+
+	// Undecorate each element of xAlt back into x.
+	for i, w := range xAlt {
+		x[i] = w.e
+	}
+}

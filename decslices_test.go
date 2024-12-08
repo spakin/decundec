@@ -1,6 +1,7 @@
 package decslices_test
 
 import (
+	"cmp"
 	"testing"
 
 	"github.com/spakin/decslices"
@@ -24,6 +25,35 @@ func TestSortIntsReversed(t *testing.T) {
 	for i, v := range array {
 		if expected[i] != v {
 			t.Fatalf("erroneous value at index %d of %#v", i, array)
+		}
+	}
+}
+
+func TestSortFuncStrings(t *testing.T) {
+	words := []string{
+		"interdenominational",
+		"unpronounceable",
+		"counterrevolutionaries",
+		"telecommunication",
+		"responsibilities",
+		"uncharacteristically",
+		"mountaineering",
+	}
+	expected := []string{
+		"mountaineering",
+		"unpronounceable",
+		"responsibilities",
+		"telecommunication",
+		"interdenominational",
+		"uncharacteristically",
+		"counterrevolutionaries",
+	}
+	decslices.SortFunc(words,
+		func(a, b int) int { return cmp.Compare(a, b) },
+		func(s string) int { return len(s) })
+	for i, w := range words {
+		if expected[i] != w {
+			t.Fatalf("erroneous value at index %d of %#v", i, words)
 		}
 	}
 }
