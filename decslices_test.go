@@ -63,3 +63,42 @@ func TestSortFuncStrings(t *testing.T) {
 		}
 	}
 }
+
+// TestSortStableFuncStrings uses SortStableFunc to sort a list of strings in
+// increasing order by length.
+func TestSortStableFuncStrings(t *testing.T) {
+	words := []string{
+		"acknowledgements",
+		"oversimplification",
+		"misinterpretation",
+		"mispronunciations",
+		"electroencephalographs",
+		"comprehensiveness",
+		"multimillionaires",
+		"misunderstandings",
+		"ophthalmologists",
+		"hyperventilating",
+		"conceptualizations",
+	}
+	expected := []string{
+		"acknowledgements",
+		"ophthalmologists",
+		"hyperventilating",
+		"misinterpretation",
+		"mispronunciations",
+		"comprehensiveness",
+		"multimillionaires",
+		"misunderstandings",
+		"oversimplification",
+		"conceptualizations",
+		"electroencephalographs",
+	}
+	decslices.SortStableFunc(words,
+		func(a, b int) int { return cmp.Compare(a, b) },
+		func(s string) int { return len(s) })
+	for i, w := range words {
+		if expected[i] != w {
+			t.Fatalf("erroneous value at index %d of %#v", i, words)
+		}
+	}
+}
