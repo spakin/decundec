@@ -64,20 +64,23 @@ func SortStableFunc[S ~[]E, E, Ekey any](x S, cmp func(a, b Ekey) int, key func(
 	sortHelper(x, cmp, key, slices.SortStableFunc)
 }
 
-// Sorted takes a slice and a function that maps each element to a sort key
-// and returns a new, sorted slice.
-func Sorted[E any, Ekey cmp.Ordered](seq iter.Seq[E], key func(E) Ekey) []E {
+// sortedHelper decorates each element of a sequence into a slice, sorts
+// the slice using given sort and comparison functions, and returns
+// undecorated sorted slice.
+func sortedHelper[E, Ekey any](seq iter.Seq[E],
+	cmp func(a, b Ekey) int,
+	key func(E) Ekey,
+	sort func([]assoc[E, Ekey], func(a, b assoc[E, Ekey]) int)) []E {
 	// Decorate each element of seq.
-	type Pair assoc[E, Ekey]
-	pairs := make([]Pair, 0, 1000) // 1000 is arbitrary
+	pairs := make([]assoc[E, Ekey], 0, 1000) // 1000 is arbitrary.
 	for e := range seq {
-		p := Pair{e: e, eKey: key(e)}
+		p := assoc[E, Ekey]{e: e, eKey: key(e)}
 		pairs = append(pairs, p)
 	}
 
-	// Sort the decorated array.
-	slices.SortStableFunc(pairs, func(a, b Pair) int {
-		return cmp.Compare(a.eKey, b.eKey)
+	// Sort the decorated slice
+	sort(pairs, func(a, b assoc[E, Ekey]) int {
+		return cmp(a.eKey, b.eKey)
 	})
 
 	// Undecorate each element of pairs into a new slice.
@@ -86,4 +89,10 @@ func Sorted[E any, Ekey cmp.Ordered](seq iter.Seq[E], key func(E) Ekey) []E {
 		xSort[i] = p.e
 	}
 	return xSort
+}
+
+// Sorted takes a slice and a function that maps each element to a sort key
+// and returns a new, sorted slice.
+func Sorted[E any, Ekey cmp.Ordered](seq iter.Seq[E], key func(E) Ekey) []E {
+	return sortedHelper(seq, cmp.Compare, key, slices.SortStableFunc)
 }
