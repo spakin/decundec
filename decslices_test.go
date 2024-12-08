@@ -2,6 +2,7 @@ package decslices_test
 
 import (
 	"cmp"
+	"slices"
 	"testing"
 
 	"github.com/spakin/decslices"
@@ -99,6 +100,31 @@ func TestSortStableFuncStrings(t *testing.T) {
 	for i, w := range words {
 		if expected[i] != w {
 			t.Fatalf("erroneous value at index %d of %#v", i, words)
+		}
+	}
+}
+
+// TestSortedUint16s uses Sorted to sort a sequence of uint16s based on their
+// base-10 digits specified in reverse order.
+func TestSortedUint16s(t *testing.T) {
+	// The following values fit in a uint16 both as is and with digits
+	// reversed.
+	seq := slices.Values([]uint16{46792, 25213, 27803, 26265, 33681, 28782, 13034, 64363, 6915, 40721, 33774, 56093, 20411, 56350, 9644, 425, 6693, 62111, 65533, 39440, 17622, 24273, 12475, 52161, 63284})
+	revDigits := func(x uint16) uint16 {
+		// Reverse a uint16's digits.
+		var rx uint16
+		for range 5 {
+			d := x % 10
+			rx = rx*10 + d
+			x /= 10
+		}
+		return rx
+	}
+	expected := []uint16{39440, 56350, 62111, 20411, 40721, 52161, 33681, 17622, 28782, 46792, 27803, 25213, 65533, 64363, 24273, 56093, 6693, 13034, 9644, 33774, 63284, 6915, 425, 26265, 12475}
+	array := decslices.Sorted(seq, revDigits)
+	for i, v := range array {
+		if expected[i] != v {
+			t.Fatalf("erroneous value at index %d of %#v", i, array)
 		}
 	}
 }

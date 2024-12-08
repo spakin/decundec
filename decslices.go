@@ -9,6 +9,7 @@ package decslices
 
 import (
 	"cmp"
+	"iter"
 	"slices"
 )
 
@@ -86,4 +87,31 @@ func SortStableFunc[S ~[]E, E, Ealt any](x S, cmp func(a, b Ealt) int, key func(
 	for i, w := range xAlt {
 		x[i] = w.e
 	}
+}
+
+// Sorted takes a slice and a function that maps each element to a sort key
+// and returns a new, sorted slice.
+func Sorted[E any, Ealt cmp.Ordered](seq iter.Seq[E], key func(E) Ealt) []E {
+	// Decorate each element of seq.
+	type Wrapper struct {
+		e    E
+		eAlt Ealt
+	}
+	xAlt := make([]Wrapper, 0, 64) // 64 is arbitrary.
+	for e := range seq {
+		w := Wrapper{e: e, eAlt: key(e)}
+		xAlt = append(xAlt, w)
+	}
+
+	// Sort the decorated array.
+	slices.SortStableFunc(xAlt, func(a, b Wrapper) int {
+		return cmp.Compare(a.eAlt, b.eAlt)
+	})
+
+	// Undecorate each element of xAlt into a new slice.
+	xSort := make([]E, len(xAlt))
+	for i, w := range xAlt {
+		xSort[i] = w.e
+	}
+	return xSort
 }
