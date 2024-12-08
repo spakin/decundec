@@ -13,105 +13,100 @@ import (
 	"slices"
 )
 
+// An assoc associates a value of any type with a value of any other type.
+// The latter is used as a sort key.
+type assoc[E, Ekey any] struct {
+	e    E
+	eKey Ekey
+}
+
 // Sort sorts a slice in ascending order given a function that maps each
 // element to a sort key.
-func Sort[S ~[]E, E any, Ealt cmp.Ordered](x S, key func(E) Ealt) {
+func Sort[S ~[]E, E any, Ekey cmp.Ordered](x S, key func(E) Ekey) {
 	// Decorate each element of x.
-	type Wrapper struct {
-		e    E
-		eAlt Ealt
-	}
-	xAlt := make([]Wrapper, len(x))
+	type Pair assoc[E, Ekey]
+	pairs := make([]Pair, len(x))
 	for i, e := range x {
-		xAlt[i].e = e
-		xAlt[i].eAlt = key(x[i])
+		pairs[i].e = e
+		pairs[i].eKey = key(x[i])
 	}
 
-	// Sort the decorated array.
-	slices.SortStableFunc(xAlt, func(a, b Wrapper) int {
-		return cmp.Compare(a.eAlt, b.eAlt)
+	// Sort the decorated slice
+	slices.SortStableFunc(pairs, func(a, b Pair) int {
+		return cmp.Compare(a.eKey, b.eKey)
 	})
 
-	// Undecorate each element of xAlt back into x.
-	for i, w := range xAlt {
-		x[i] = w.e
+	// Undecorate each element of pairs back into x.
+	for i, p := range pairs {
+		x[i] = p.e
 	}
 }
 
 // SortFunc sorts a slice in ascending order as determined by the cmp
 // function and given a function that maps each element to a sort key.
-func SortFunc[S ~[]E, E, Ealt any](x S, cmp func(a, b Ealt) int, key func(E) Ealt) {
+func SortFunc[S ~[]E, E, Ekey any](x S, cmp func(a, b Ekey) int, key func(E) Ekey) {
 	// Decorate each element of x.
-	type Wrapper struct {
-		e    E
-		eAlt Ealt
-	}
-	xAlt := make([]Wrapper, len(x))
+	type Pair assoc[E, Ekey]
+	pairs := make([]Pair, len(x))
 	for i, e := range x {
-		xAlt[i].e = e
-		xAlt[i].eAlt = key(x[i])
+		pairs[i].e = e
+		pairs[i].eKey = key(x[i])
 	}
 
 	// Sort the decorated array.
-	slices.SortFunc(xAlt, func(a, b Wrapper) int {
-		return cmp(a.eAlt, b.eAlt)
+	slices.SortFunc(pairs, func(a, b Pair) int {
+		return cmp(a.eKey, b.eKey)
 	})
 
 	// Undecorate each element of xAlt back into x.
-	for i, w := range xAlt {
-		x[i] = w.e
+	for i, p := range pairs {
+		x[i] = p.e
 	}
 }
 
 // SortStableFunc sorts a slice in ascending order as determined by the cmp
 // function and given a function that maps each element to a sort key.
-// SortStableFunc preserves the original order of equal elements,
-func SortStableFunc[S ~[]E, E, Ealt any](x S, cmp func(a, b Ealt) int, key func(E) Ealt) {
+// SortStableFunc preserves the original order of equal elements.
+func SortStableFunc[S ~[]E, E, Ekey any](x S, cmp func(a, b Ekey) int, key func(E) Ekey) {
 	// Decorate each element of x.
-	type Wrapper struct {
-		e    E
-		eAlt Ealt
-	}
-	xAlt := make([]Wrapper, len(x))
+	type Pair assoc[E, Ekey]
+	pairs := make([]Pair, len(x))
 	for i, e := range x {
-		xAlt[i].e = e
-		xAlt[i].eAlt = key(x[i])
+		pairs[i].e = e
+		pairs[i].eKey = key(x[i])
 	}
 
 	// Sort the decorated array.
-	slices.SortStableFunc(xAlt, func(a, b Wrapper) int {
-		return cmp(a.eAlt, b.eAlt)
+	slices.SortStableFunc(pairs, func(a, b Pair) int {
+		return cmp(a.eKey, b.eKey)
 	})
 
 	// Undecorate each element of xAlt back into x.
-	for i, w := range xAlt {
-		x[i] = w.e
+	for i, p := range pairs {
+		x[i] = p.e
 	}
 }
 
 // Sorted takes a slice and a function that maps each element to a sort key
 // and returns a new, sorted slice.
-func Sorted[E any, Ealt cmp.Ordered](seq iter.Seq[E], key func(E) Ealt) []E {
+func Sorted[E any, Ekey cmp.Ordered](seq iter.Seq[E], key func(E) Ekey) []E {
 	// Decorate each element of seq.
-	type Wrapper struct {
-		e    E
-		eAlt Ealt
-	}
-	xAlt := make([]Wrapper, 0, 64) // 64 is arbitrary.
+	type Pair assoc[E, Ekey]
+	pairs := make([]Pair, 0, 1000) // 1000 is arbitrary
 	for e := range seq {
-		w := Wrapper{e: e, eAlt: key(e)}
-		xAlt = append(xAlt, w)
+		p := Pair{e: e, eKey: key(e)}
+		pairs = append(pairs, p)
 	}
 
 	// Sort the decorated array.
-	slices.SortStableFunc(xAlt, func(a, b Wrapper) int {
-		return cmp.Compare(a.eAlt, b.eAlt)
+	slices.SortStableFunc(pairs, func(a, b Pair) int {
+		return cmp.Compare(a.eKey, b.eKey)
 	})
 
-	// Undecorate each element of xAlt into a new slice.
-	xSort := make([]E, len(xAlt))
-	for i, w := range xAlt {
-		xSort[i] = w.e
+	// Undecorate each element of pairs into a new slice.
+	xSort := make([]E, len(pairs))
+	for i, p := range pairs {
+		xSort[i] = p.e
 	}
 	return xSort
 }
