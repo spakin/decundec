@@ -96,3 +96,12 @@ func sortedHelper[E, Ekey any](seq iter.Seq[E],
 func Sorted[E any, Ekey cmp.Ordered](seq iter.Seq[E], key func(E) Ekey) []E {
 	return sortedHelper(seq, cmp.Compare, key, slices.SortStableFunc)
 }
+
+
+// SortedFunc takes a slice, a key-comparison function, and a function that
+// maps each element to a sort key; it returns a new, sorted slice.
+func SortedFunc[E any, Ekey cmp.Ordered](seq iter.Seq[E],
+	cmp func(a, b Ekey) int,
+	key func(E) Ekey) []E {
+	return sortedHelper(seq, cmp, key, slices.SortFunc)
+}

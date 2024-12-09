@@ -2,7 +2,9 @@ package decslices_test
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
+	"strconv"
 	"testing"
 
 	"github.com/spakin/decslices"
@@ -122,6 +124,42 @@ func TestSortedUint16s(t *testing.T) {
 	}
 	expected := []uint16{39440, 56350, 62111, 20411, 40721, 52161, 33681, 17622, 28782, 46792, 27803, 25213, 65533, 64363, 24273, 56093, 6693, 13034, 9644, 33774, 63284, 6915, 425, 26265, 12475}
 	array := decslices.Sorted(seq, revDigits)
+	for i, v := range array {
+		if expected[i] != v {
+			t.Fatalf("erroneous value at index %d of %v", i, array)
+		}
+	}
+}
+
+// TestSortedFuncStrings uses SortedFunc to sort a sequence of string
+// representations of numbers.
+func TestSortedFuncStrings(t *testing.T) {
+	// Define a finite sequence of numbers, represented with strings.
+	seq := func(yield func(string) bool) {
+		var x uint = 17
+		for {
+			if !yield(fmt.Sprintf("%04d", x)) || x == 9 {
+				return
+			}
+			x = (x * 7) % 23
+		}
+	}
+	expected := make([]string, 22)
+	for i := range expected {
+		expected[i] = fmt.Sprintf("%04d", i+1)
+	}
+
+	// Define a function that extract numbers from strings.
+	num2str := func(s string) int {
+		v, err := strconv.Atoi(s)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return v
+	}
+
+	// Sort and validate the sequence.
+	array := decslices.SortedFunc(seq, cmp.Compare, num2str)
 	for i, v := range array {
 		if expected[i] != v {
 			t.Fatalf("erroneous value at index %d of %v", i, array)
