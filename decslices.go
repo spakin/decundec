@@ -48,7 +48,7 @@ func sortHelper[S ~[]E, E, Ekey any](x S,
 // Sort sorts a slice in ascending order given a function that maps each
 // element to a sort key.
 func Sort[S ~[]E, E any, Ekey cmp.Ordered](x S, key func(E) Ekey) {
-	sortHelper(x, cmp.Compare, key, slices.SortStableFunc)
+	sortHelper(x, cmp.Compare, key, slices.SortFunc)
 }
 
 // SortFunc sorts a slice in ascending order as determined by the cmp
@@ -94,7 +94,7 @@ func sortedHelper[E, Ekey any](seq iter.Seq[E],
 // Sorted takes a slice and a function that maps each element to a sort key
 // and returns a new, sorted slice.
 func Sorted[E any, Ekey cmp.Ordered](seq iter.Seq[E], key func(E) Ekey) []E {
-	return sortedHelper(seq, cmp.Compare, key, slices.SortStableFunc)
+	return sortedHelper(seq, cmp.Compare, key, slices.SortFunc)
 }
 
 // SortedFunc takes a slice, a key-comparison function, and a function that
