@@ -166,3 +166,45 @@ func TestSortedFuncStrings(t *testing.T) {
 		}
 	}
 }
+
+// TestSortedStableFuncStrings uses SortedFunc to sort a sequence of string
+// representations of numbers, each prefixed by a letter.
+func TestSortedStableFuncStrings(t *testing.T) {
+	// Define a finite sequence of numbers, represented with strings.
+	seq := func(yield func(string) bool) {
+		var c rune = 'C'
+		var x uint = 17
+		for {
+			if !yield(fmt.Sprintf("%c%d", c, x)) || c == 'A' && x == 9 {
+				return
+			}
+			x = (x * 7) % 23
+			if x == 17 {
+				c--
+			}
+		}
+	}
+	expected := make([]string, 0, 22*3)
+	for x := 1; x <= 22; x++ {
+		for _, c := range []rune{'C', 'B', 'A'} {
+			expected = append(expected, fmt.Sprintf("%c%d", c, x))
+		}
+	}
+
+	// Define a function that extract numbers from strings.
+	num2str := func(s string) int {
+		v, err := strconv.Atoi(s[1:])
+		if err != nil {
+			t.Fatal(err)
+		}
+		return v
+	}
+
+	// Sort and validate the sequence.
+	array := decslices.SortedStableFunc(seq, cmp.Compare, num2str)
+	for i, v := range array {
+		if expected[i] != v {
+			t.Fatalf("erroneous value at index %d of %v", i, array)
+		}
+	}
+}
