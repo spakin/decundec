@@ -2,6 +2,8 @@ package decslices
 
 import (
 	"cmp"
+	"iter"
+	"math"
 	"math/rand"
 	"slices"
 	"testing"
@@ -102,5 +104,67 @@ func BenchmarkSortFuncVowels(b *testing.B) {
 				return countVowels(s)
 			},
 		)
+	}
+}
+
+// revDigits reverses a uint16's digits.  It accepts larger unsigned types
+// but acts as if they are uint16s.
+func revDigits[T uint16 | uint32 | uint64](x T) T {
+	var rx T
+	for range 5 {
+		d := x % 10
+		rx = rx*10 + d
+		x /= 10
+	}
+	return rx
+}
+
+// genReversable yields uint16s that remain uint16s when their digits are
+// reversed.
+func genReversable(rng *rand.Rand, n int) iter.Seq[uint16] {
+	return func(yield func(uint16) bool) {
+		for range n {
+			x16 := uint32(rng.Intn(math.MaxUint16 + 1))
+			rx16 := revDigits(x16)
+			if rx16 > math.MaxUint16 {
+				continue
+			}
+			if !yield(uint16(rx16)) {
+				return
+			}
+		}
+	}
+}
+
+// BenchmarkSlicesSortedFuncDigits sorts numbers by reverse order of their
+// digits using slices.SortedFunc.
+func BenchmarkSlicesSortedFuncDigits(b *testing.B) {
+	for range b.N {
+		b.StopTimer()
+		rng := rand.New(rand.NewSource(rngSeed))
+		seq := genReversable(rng, numElts)
+		b.StartTimer()
+		_ = slices.SortedFunc(seq,
+			func(a, b uint16) int {
+				return cmp.Compare(revDigits(a), revDigits(b))
+			})
+	}
+}
+
+// BenchmarkSortedFuncDigits sorts numbers by reverse order of their digits
+// using SortedFunc.
+func BenchmarkSortedFuncDigits(b *testing.B) {
+	for range b.N {
+		b.StopTimer()
+		rng := rand.New(rand.NewSource(rngSeed))
+		seq := genReversable(rng, numElts)
+		b.StartTimer()
+		_ = SortedFunc(seq,
+			func(a, b uint16) int {
+				return cmp.Compare(a, b)
+			},
+			func(x uint16) uint16 {
+				return revDigits(x)
+			})
 	}
 }
