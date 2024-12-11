@@ -58,7 +58,7 @@ func TestSortFuncStrings(t *testing.T) {
 		"counterrevolutionaries",
 	}
 	decundec.SortFunc(words,
-		func(a, b int) int { return cmp.Compare(a, b) },
+		cmp.Compare,
 		func(s string) int { return len(s) })
 	for i, w := range words {
 		if expected[i] != w {
@@ -97,7 +97,7 @@ func TestSortStableFuncStrings(t *testing.T) {
 		"electroencephalographs",
 	}
 	decundec.SortStableFunc(words,
-		func(a, b int) int { return cmp.Compare(a, b) },
+		cmp.Compare,
 		func(s string) int { return len(s) })
 	for i, w := range words {
 		if expected[i] != w {
