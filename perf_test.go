@@ -2,6 +2,7 @@ package decslices
 
 import (
 	"cmp"
+	"fmt"
 	"iter"
 	"math"
 	"math/rand"
@@ -165,6 +166,88 @@ func BenchmarkSortedFuncDigits(b *testing.B) {
 			},
 			func(x uint16) uint16 {
 				return revDigits(x)
+			})
+	}
+}
+
+// BenchmarkScaling sort by reversed digits with increasing slice sizes.
+func BenchmarkScaling(b *testing.B) {
+	const minElts = 8
+	const maxElts = 4096
+
+	// Using slices.SortFunc
+	for n := minElts; n <= maxElts; n <<= 1 {
+		b.Run(fmt.Sprintf("slicesSort_%d", n),
+			func(b *testing.B) {
+				for range b.N {
+					b.StopTimer()
+					rng := rand.New(rand.NewSource(rngSeed))
+					seq := genReversable(rng, n)
+					slice := slices.Collect(seq)
+					b.StartTimer()
+					slices.SortFunc(slice,
+						func(a, b uint16) int {
+							return cmp.Compare(revDigits(a), revDigits(b))
+						})
+				}
+			})
+	}
+
+	// Using SortFunc
+	for n := minElts; n <= maxElts; n <<= 1 {
+		b.Run(fmt.Sprintf("decslicesSort_%d", n),
+			func(b *testing.B) {
+				for range b.N {
+					b.StopTimer()
+					rng := rand.New(rand.NewSource(rngSeed))
+					seq := genReversable(rng, n)
+					slice := slices.Collect(seq)
+					b.StartTimer()
+					SortFunc(slice,
+						func(a, b uint16) int {
+							return cmp.Compare(a, b)
+						},
+						func(x uint16) uint16 {
+							return revDigits(x)
+						})
+				}
+			})
+	}
+
+	// Using slices.SortedFunc
+	for n := minElts; n <= maxElts; n <<= 1 {
+		b.Run(fmt.Sprintf("slicesSorted_%d", n),
+			func(b *testing.B) {
+				for range b.N {
+					b.StopTimer()
+					rng := rand.New(rand.NewSource(rngSeed))
+					seq := genReversable(rng, n)
+					b.StartTimer()
+					_ = slices.SortedFunc(seq,
+						func(a, b uint16) int {
+							return cmp.Compare(revDigits(a), revDigits(b))
+						})
+				}
+			})
+	}
+
+	// Using SortedFunc
+	for n := minElts; n <= maxElts; n <<= 1 {
+		b.Run(fmt.Sprintf("decslicesSorted_%d", n),
+			func(b *testing.B) {
+				for range b.N {
+					b.StopTimer()
+					rng := rand.New(rand.NewSource(rngSeed))
+					seq := genReversable(rng, n)
+					b.StartTimer()
+					_ = SortedFunc(seq,
+						func(a, b uint16) int {
+							return cmp.Compare(a, b)
+						},
+						func(x uint16) uint16 {
+							return revDigits(x)
+						})
+				}
 			})
 	}
 }
