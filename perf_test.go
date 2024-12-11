@@ -1,4 +1,4 @@
-package decslices
+package decundec
 
 import (
 	"cmp"
@@ -195,7 +195,7 @@ func BenchmarkScaling(b *testing.B) {
 
 	// Using SortFunc
 	for n := minElts; n <= maxElts; n <<= 1 {
-		b.Run(fmt.Sprintf("decslicesSort_%d", n),
+		b.Run(fmt.Sprintf("decundecSort_%d", n),
 			func(b *testing.B) {
 				for range b.N {
 					b.StopTimer()
@@ -233,7 +233,7 @@ func BenchmarkScaling(b *testing.B) {
 
 	// Using SortedFunc
 	for n := minElts; n <= maxElts; n <<= 1 {
-		b.Run(fmt.Sprintf("decslicesSorted_%d", n),
+		b.Run(fmt.Sprintf("decundecSorted_%d", n),
 			func(b *testing.B) {
 				for range b.N {
 					b.StopTimer()
