@@ -1,6 +1,8 @@
 decundec
 ========
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/spakin/decundec.svg)](https://pkg.go.dev/github.com/spakin/decundec) [![Go Report Card](https://goreportcard.com/badge/spakin/decundec)](https://goreportcard.com/report/spakin/decundec)
+
 Introduction
 ------------
 
