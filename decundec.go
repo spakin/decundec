@@ -1,10 +1,20 @@
 /*
-   Package decundec wraps the sorting functions in Go's slices
-   package to employ a decorate-sort-undecorate idiom.  This can
-   improve sorting performance when the comparison function is
-   time-consuming to compute.
-*/
+Package decundec wraps the sorting functions in Go's slices package to
+employ a decorate-sort-undecorate idiom.  This can improve sorting
+performance when the comparison function is time-consuming to compute.
 
+decorate-sort-undecorate works by
+① associating a sort key with each data element to be sorted,
+② sorting based on those keys, carrying along the original data, and finally,
+③ removing the sort keys that were added, leaving only the sorted elements.
+
+The advantage of decorate-sort-undecorate is that sort keys are
+computed only once per element, not each time an element is used in a
+comparison, which typically will be many more than the number of
+elements.  The disadvantages are that additional memory must be
+allocated to store the decorated slice and that more data must be
+moved on each element swap.
+*/
 package decundec
 
 import (
@@ -59,7 +69,7 @@ func SortFunc[S ~[]E, E, Ekey any](x S, cmp func(a, b Ekey) int, key func(E) Eke
 
 // SortStableFunc sorts a slice in ascending order as determined by the cmp
 // function and given a function that maps each element to a sort key.
-// SortStableFunc preserves the original order of equal elements.
+// SortStableFunc preserves the original order of elements with equal keys.
 func SortStableFunc[S ~[]E, E, Ekey any](x S, cmp func(a, b Ekey) int, key func(E) Ekey) {
 	sortHelper(x, cmp, key, slices.SortStableFunc)
 }
@@ -107,7 +117,8 @@ func SortedFunc[E any, Ekey cmp.Ordered](seq iter.Seq[E],
 
 // SortedStableFunc takes a slice, a key-comparison function, and a
 // function that maps each element to a sort key; it returns a new, sorted
-// slice.  SortedStableFunc preserves the original order of equal elements.
+// slice.  SortedStableFunc preserves the original order of elements with
+// equal keys.
 func SortedStableFunc[E any, Ekey cmp.Ordered](seq iter.Seq[E],
 	cmp func(a, b Ekey) int,
 	key func(E) Ekey) []E {
