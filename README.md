@@ -29,11 +29,11 @@ var hosts = []string{
 }
 
 func getIP(host string) net.IP {
-	ips, err := net.LookupIP(host)
-	if err != nil {
-		panic(err)
-	}
-	return ips[0]
+       ips, err := net.LookupIP(host)
+       if err != nil {
+           panic(err)
+       }
+       return ips[0]
 }
 ```
 Assuming the IP addresses for those host names are, respectively, 140.82.116.3, 216.239.34.21, 142.250.72.142, 104.18.13.149, and 104.18.32.7, sorting with Go's [`slices.SortFunc`](https://pkg.go.dev/slices#SortFunc) performs a total of 20 (slow) IP-address lookups: two for each of ten invocations of the comparison function:
@@ -79,6 +79,41 @@ Usage
 -----
 
 `decundec` replacements are provided for all of the sorting functions in Go's [`slices`](https://pkg.go.dev/slices) package.  In all cases, the `decundec` version takes an extra argument: a function that maps an element to a sort key.  User-provided comparison functions are defined in terms of the sort key's type rather than the original elements' type.
+
+Performance
+-----------
+
+As a test of `decundec`'s performance, consider sorting a list of `uint16` values in reverse order of their base-10 digits.  For example, the list
+
+* 46792
+* 25213
+* 27803
+* 26265
+* 33681
+
+should be sorted as
+
+* 33681
+* 46792
+* 27803
+* 25213
+* 26265
+
+The following graph plots the speedup of [`decundec.SortFunc`](https://pkg.go.dev/github.com/spakin/decundec#SortFunc) and [`decundec.SortedFunc`](https://pkg.go.dev/github.com/spakin/decundec#SortedFunc) over their [`slices.SortFunc`](https://pkg.go.dev/slices#SortFunc) and [`slices.SortedFunc`](https://pkg.go.dev/slices#SortedFunc) counterparts as a function of element count:
+
+![speedup](https://github.com/user-attachments/assets/d0a24235-39f9-4565-9440-6fefa4f79299)
+
+Speedup is defined as
+```math
+100\% \cdot \left( \frac{T_\text{slices}}{T_\text{decundec}} - 1 \right)
+```
+Hence, bars less than 0% indicate that `slices` is faster while bars greater than 0% indicate that `decundec` is faster.  Data were gathered by running
+```bash
+go test -bench . -count=11 -timeout 0
+```
+and processing the output with [`benchstat`](https://pkg.go.dev/golang.org/x/perf/cmd/benchstat).
+
+The graph illustrates that for this digit-reversal test, `slices` is faster up to a list length of 32 elements and `decundec` is faster for all longer lists.  `decundec`'s `SortFunc` runs twice as fast as `slices`'s (100% speedup) while `decundec`'s `SortedFunc` runs 75% faster than `slices`'s.
 
 
 Author
