@@ -13,6 +13,8 @@ By "decorate-sort-undecorate" we mean that
 2. the data are sorted based on those keys, carrying along the original data, and finally,
 3. the sort keys that were added are stripped, leaving only the sorted elements.
 
+The advantage of decorate-sort-undecorate is that sort keys are computed only once per element, not each time an element is used in a comparison, which typically will be many more than the number of elements.  The disadvantages are that additional memory must be allocated to store the decorated slice and that more data must be moved on each element swap.
+
 Motivation
 ----------
 

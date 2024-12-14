@@ -1,19 +1,8 @@
 /*
 Package decundec wraps the sorting functions in Go's slices package to
 employ a decorate-sort-undecorate idiom.  This can improve sorting
-performance when the comparison function is time-consuming to compute.
-
-decorate-sort-undecorate works by
-① associating a sort key with each data element to be sorted,
-② sorting based on those keys, carrying along the original data, and finally,
-③ removing the sort keys that were added, leaving only the sorted elements.
-
-The advantage of decorate-sort-undecorate is that sort keys are
-computed only once per element, not each time an element is used in a
-comparison, which typically will be many more than the number of
-elements.  The disadvantages are that additional memory must be
-allocated to store the decorated slice and that more data must be
-moved on each element swap.
+performance when the comparison function is time-consuming to compute
+but does require allocating additional memory for the sort keys.
 */
 package decundec
 
